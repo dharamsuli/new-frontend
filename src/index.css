@@ -1,0 +1,26 @@
+@import "tailwindcss";
+.input {
+  width: 100%;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4f46e5;
+}
+button{
+  cursor: pointer;
+}
+/* hide horizontal scrollbar but keep scroll behavior */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none;    /* Firefox */
+}
+
