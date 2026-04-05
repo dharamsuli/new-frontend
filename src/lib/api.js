@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_ORIGIN = API_BASE.replace(/\/api\/?$/, "");
 
 export async function apiRequest(path, options = {}) {
   const token =
@@ -28,4 +29,4 @@ export async function apiRequest(path, options = {}) {
   return payload;
 }
 
-export { API_BASE };
+export { API_BASE, API_ORIGIN };

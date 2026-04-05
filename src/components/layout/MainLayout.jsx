@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import { useAuth } from "../../hooks/useAuth";
+import nookNativeLogo from "../../assets/nook-nativelogo.png";
 import Footer from "./Footer";
 
 const navLinkBase =
@@ -47,9 +48,11 @@ export function MainLayout() {
 
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-700 text-lg font-bold text-white shadow-lg shadow-emerald-200">
-              NN
-            </div>
+            <img
+              src={nookNativeLogo}
+              alt="Nook and Native logo"
+              className="h-14 w-14 rounded-[18px] object-cover shadow-lg shadow-emerald-200 md:h-16 md:w-16"
+            />
             <div>
               <p className="text-lg font-semibold">Nook and Native</p>
               <p className="text-xs text-slate-500">Fresh produce marketplace</p>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
-import { fetchStaticImages, fetchVendorProducts, saveProduct } from "../../lib/adminProducts";
+import { fetchStaticImages, fetchVendorProducts, saveProduct, uploadProductImage } from "../../lib/adminProducts";
 import { useAdminGuard } from "../../hooks/useAdminGuard";
 import { formatINR } from "../../utils/currency";
 import { resolveProductImage } from "../../lib/productImages";
@@ -28,6 +28,7 @@ export function AdminProducts() {
   const [imageOptions, setImageOptions] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -112,6 +113,12 @@ export function AdminProducts() {
           className="mt-6 space-y-4"
           onSubmit={async (event) => {
             event.preventDefault();
+
+            if (!form.image) {
+              toast.error("Please upload or select an image first");
+              return;
+            }
+
             setSaving(true);
             try {
               const saved = await saveProduct({
@@ -180,8 +187,8 @@ export function AdminProducts() {
               <input className="input" type="number" value={form.stock} onChange={(event) => setForm((current) => ({ ...current, stock: event.target.value }))} />
             </Field>
           </div>
-          <Field label="Static image">
-            <select className="input" value={form.image} onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}>
+          <Field label="Preset image library">
+            <select className="input" value={imageOptions.some((option) => option.image === form.image) ? form.image : ""} onChange={(event) => setForm((current) => ({ ...current, image: event.target.value }))}>
               <option value="">Select an image</option>
               {imageOptions.map((option) => (
                 <option key={option.image} value={option.image}>
@@ -190,6 +197,35 @@ export function AdminProducts() {
               ))}
             </select>
           </Field>
+          <Field label="Upload new image">
+            <input
+              type="file"
+              accept="image/*"
+              className="input cursor-pointer file:mr-4 file:rounded-full file:border-0 file:bg-emerald-700 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                if (!file) {
+                  return;
+                }
+
+                setUploadingImage(true);
+                try {
+                  const uploaded = await uploadProductImage(file);
+                  setForm((current) => ({ ...current, image: uploaded.image }));
+                  toast.success("Image uploaded");
+                } catch (error) {
+                  toast.error(error.message);
+                } finally {
+                  setUploadingImage(false);
+                  event.target.value = "";
+                }
+              }}
+            />
+          </Field>
+          <p className="text-xs text-slate-500">
+            Use the preset produce library or upload a new image file directly from your device.
+          </p>
+          {uploadingImage ? <p className="text-sm font-medium text-emerald-700">Uploading image...</p> : null}
           {form.image ? (
             <div className="rounded-[24px] bg-slate-50 p-4">
               <p className="mb-3 text-sm font-medium text-slate-700">Selected image preview</p>
@@ -211,7 +247,7 @@ export function AdminProducts() {
             <input type="checkbox" checked={form.isPublished} onChange={(event) => setForm((current) => ({ ...current, isPublished: event.target.checked }))} />
             Published
           </label>
-          <button type="submit" disabled={saving} className="w-full rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white">
+          <button type="submit" disabled={saving || uploadingImage} className="w-full rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white">
             {saving ? "Saving..." : "Save product"}
           </button>
         </form>

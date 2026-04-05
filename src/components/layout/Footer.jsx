@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import nookNativeLogo from "../../assets/nook-nativelogo.png";
 
 function Footer() {
   const year = new Date().getFullYear();
@@ -8,8 +9,14 @@ function Footer() {
     <footer className="mt-16 border-t border-emerald-100 bg-white/90">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 text-sm text-slate-700 sm:grid-cols-3 sm:px-6 lg:px-8">
         <div>
-          <p className="text-lg font-semibold text-slate-900">Nook and Native</p>
-          <p className="mt-2 text-sm text-slate-600">
+          <div className="flex items-center gap-3">
+            <img src={nookNativeLogo} alt="Nook and Native logo" className="h-14 w-14 rounded-[18px] object-cover shadow-lg shadow-emerald-200" />
+            <div>
+              <p className="text-lg font-semibold text-slate-900">Nook and Native</p>
+              <p className="text-xs text-slate-500">Fresh produce marketplace</p>
+            </div>
+          </div>
+          <p className="mt-3 text-sm text-slate-600">
             Fruits, vegetables, and herbs with simple COD checkout and vendor-ready order management.
           </p>
         </div>
@@ -36,7 +43,7 @@ function Footer() {
       </div>
 
       <div className="border-t border-emerald-100 px-4 py-4 text-center text-xs text-slate-500">
-        © {year} Nook and Native. Fresh produce, vendor-friendly tools, and COD ordering.
+        &copy; {year} Nook and Native. Fresh produce, vendor-friendly tools, and COD ordering.
       </div>
     </footer>
   );

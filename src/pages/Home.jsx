@@ -33,7 +33,7 @@ const categories = [
     slug: "herbs",
     label: "Herbs",
     blurb: "Flavor boosters for finishing and garnish.",
-    image: "https://images.unsplash.com/photo-1594515973685-2ed3257ec4ac?w=600&h=400&fit=crop",
+    image: "https://images.unsplash.com/photo-1461354464878-ad92f492a5a0?w=600&h=400&fit=crop",
     color: "from-amber-600 to-yellow-500"
   }
 ];
@@ -120,9 +120,10 @@ export function Home() {
 
   return (
     <div ref={rootRef} className="min-h-screen overflow-x-clip bg-gradient-to-b from-emerald-50 via-white to-orange-50">
+      {/* Hero Section - Mobile Optimized */}
       <section
         ref={heroRef}
-        className="relative min-h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-900 text-white"
+        className="relative w-screen overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-900 text-white"
         style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
       >
         <div className="absolute inset-0">
@@ -135,15 +136,15 @@ export function Home() {
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/75 via-emerald-900/45 to-transparent" />
         </div>
 
-        <div className="relative z-10 w-full px-5 py-16 md:px-8 md:py-20 lg:px-12 lg:py-24">
-          <div className="grid min-h-screen items-center gap-12 lg:grid-cols-[1.1fr,0.9fr]">
-            <div className="space-y-8">
-              <div className="hero-fade inline-flex rounded-full bg-white/20 px-6 py-2 text-sm font-semibold uppercase tracking-[0.25em] backdrop-blur-sm">
+        <div className="relative z-10 w-full px-4 py-12 md:px-8 md:py-20 lg:px-12 lg:py-24">
+          <div className="grid min-h-[80vh] items-center gap-8 md:min-h-screen md:gap-12 lg:grid-cols-[1.1fr,0.9fr]">
+            <div className="space-y-6 md:space-y-8">
+              <div className="hero-fade inline-flex rounded-full bg-white/20 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] backdrop-blur-sm md:px-6 md:py-2 md:text-sm">
                 Fresh produce. COD only.
               </div>
 
-              <div className="space-y-6">
-                <h1 className="hero-fade max-w-4xl text-5xl font-bold leading-tight md:text-6xl lg:text-7xl">
+              <div className="space-y-4 md:space-y-6">
+                <h1 className="hero-fade text-3xl font-bold leading-tight md:text-5xl lg:text-6xl xl:text-7xl">
                   Nook and Native brings
                   <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
                     fruits & vegetables
@@ -151,15 +152,15 @@ export function Home() {
                   to your doorstep.
                 </h1>
 
-                <p className="hero-fade max-w-2xl text-lg text-white/90 md:text-xl">
+                <p className="hero-fade text-base text-white/90 md:text-xl">
                   Fresh produce, vendor registration, and a proper Node + Mongo backend in one clean storefront.
                 </p>
               </div>
 
-              <div className="hero-fade flex flex-wrap gap-4">
+              <div className="hero-fade flex flex-col gap-3 sm:flex-row sm:gap-4">
                 <Link
                   to="/category/all"
-                  className="group relative overflow-hidden rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 px-8 py-4 text-base font-semibold text-emerald-900 transition-all hover:scale-105 hover:shadow-xl"
+                  className="group relative overflow-hidden rounded-full bg-gradient-to-r from-yellow-400 to-orange-500 px-6 py-3 text-center text-sm font-semibold text-emerald-900 transition-all hover:scale-105 hover:shadow-xl md:px-8 md:py-4 md:text-base"
                 >
                   <span className="relative z-10">Shop all produce</span>
                   <div className="absolute inset-0 translate-y-full bg-gradient-to-r from-yellow-500 to-orange-600 transition-transform duration-300 group-hover:translate-y-0" />
@@ -167,34 +168,35 @@ export function Home() {
 
                 <Link
                   to="/account"
-                  className="rounded-full border-2 border-white/30 px-8 py-4 text-base font-semibold backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/10"
+                  className="rounded-full border-2 border-white/30 px-6 py-3 text-center text-sm font-semibold backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/10 md:px-8 md:py-4 md:text-base"
                 >
                   Customer or vendor login
                 </Link>
               </div>
             </div>
 
-            <div className="hero-fade grid gap-4 rounded-3xl bg-white/10 p-6 shadow-2xl backdrop-blur-md">
+            {/* Features Grid - Mobile Optimized */}
+            <div className="hero-fade grid gap-3 rounded-2xl bg-white/10 p-4 shadow-2xl backdrop-blur-md md:gap-4 md:rounded-3xl md:p-6">
               {[
                 { icon: "Apples", text: "Fresh fruits from reliable farm sources" },
                 { icon: "Secure", text: "Vendor registration with hashed credentials" },
                 { icon: "COD", text: "COD-only checkout and lean order storage" },
-                { icon: "Static", text: "Static catalog imagery for fast loading" }
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="group flex items-center gap-4 rounded-2xl bg-white/10 p-4 transition-all hover:scale-[1.02] hover:bg-white/20"
+                  className="group flex items-center gap-3 rounded-xl bg-white/10 p-3 transition-all hover:scale-[1.02] hover:bg-white/20 md:gap-4 md:rounded-2xl md:p-4"
                 >
-                  <span className="min-w-14 rounded-full bg-white/15 px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.18em]">
+                  <span className="min-w-12 rounded-full bg-white/15 px-2 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.18em] md:min-w-14 md:px-3 md:py-2 md:text-xs">
                     {item.icon}
                   </span>
-                  <span className="text-sm font-medium">{item.text}</span>
+                  <span className="text-xs font-medium md:text-sm">{item.text}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
+        {/* Wave SVG - Hidden on very small screens? Keep it but make it responsive */}
         <div className="absolute bottom-0 left-0 right-0">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="w-full">
             <path
@@ -206,9 +208,10 @@ export function Home() {
         </div>
       </section>
 
-      <section ref={statsRef} className="relative z-10 -mt-16 mb-16">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      {/* Stats Section - Mobile Optimized */}
+      <section ref={statsRef} className="relative z-10 -mt-12 mb-12 px-4 md:-mt-16 md:mb-16">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
             {[
               { number: "500+", label: "Fresh Products", icon: "Produce" },
               { number: "100+", label: "Local Vendors", icon: "Vendors" },
@@ -217,47 +220,48 @@ export function Home() {
             ].map((stat, idx) => (
               <div
                 key={idx}
-                className="stat-item rounded-2xl bg-white p-6 text-center shadow-xl transition-all hover:scale-105 hover:shadow-2xl"
+                className="stat-item rounded-xl bg-white p-4 text-center shadow-lg transition-all hover:scale-105 hover:shadow-2xl md:rounded-2xl md:p-6"
               >
-                <div className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-emerald-700 md:mb-3 md:text-xs">
                   {stat.icon}
                 </div>
-                <div className="text-3xl font-bold text-emerald-700">{stat.number}</div>
-                <div className="mt-2 text-sm text-slate-600">{stat.label}</div>
+                <div className="text-xl font-bold text-emerald-700 md:text-3xl">{stat.number}</div>
+                <div className="mt-1 text-xs text-slate-600 md:mt-2 md:text-sm">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section ref={categoriesRef} className="mx-auto max-w-7xl px-4 py-16">
-        <div className="mb-12 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Shop by Category</p>
-          <h2 className="mt-3 text-4xl font-bold text-slate-800 md:text-5xl">Explore Our Fresh Collection</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
+      {/* Categories Section - Mobile Optimized */}
+      <section ref={categoriesRef} className="mx-auto max-w-7xl px-4 py-12 md:py-16">
+        <div className="mb-8 text-center md:mb-12">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600 md:text-sm">Shop by Category</p>
+          <h2 className="mt-2 text-3xl font-bold text-slate-800 md:mt-3 md:text-4xl lg:text-5xl">Explore Our Fresh Collection</h2>
+          <p className="mx-auto mt-3 max-w-2xl text-base text-slate-600 md:mt-4 md:text-lg">
             Discover nature&apos;s finest produce, carefully selected for your daily needs.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
           {categories.map((category) => (
             <Link
               key={category.slug}
               to={`/category/${category.slug}`}
-              className="category-card group relative overflow-hidden rounded-3xl shadow-xl transition-all hover:-translate-y-2 hover:shadow-2xl"
+              className="category-card group relative overflow-hidden rounded-2xl shadow-lg transition-all hover:-translate-y-2 hover:shadow-2xl md:rounded-3xl"
             >
-              <div className="relative h-80 overflow-hidden">
+              <div className="relative h-64 overflow-hidden md:h-80">
                 <img
                   src={category.image}
                   alt={category.label}
                   className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className={`absolute inset-0 bg-gradient-to-t ${category.color} opacity-70`} />
-                <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] opacity-90">{category.slug}</p>
-                  <h3 className="mt-2 text-2xl font-bold">{category.label}</h3>
-                  <p className="mt-1 text-sm opacity-90">{category.blurb}</p>
-                  <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold transition-all group-hover:gap-3">
+                <div className="absolute bottom-0 left-0 right-0 p-4 text-white md:p-6">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.25em] opacity-90 md:text-xs">{category.slug}</p>
+                  <h3 className="mt-1 text-xl font-bold md:mt-2 md:text-2xl">{category.label}</h3>
+                  <p className="mt-1 text-xs opacity-90 md:mt-1 md:text-sm">{category.blurb}</p>
+                  <div className="mt-3 inline-flex items-center gap-2 text-xs font-semibold transition-all group-hover:gap-3 md:mt-4 md:text-sm">
                     Shop Now <span>{"->"}</span>
                   </div>
                 </div>
@@ -267,41 +271,42 @@ export function Home() {
         </div>
       </section>
 
+      {/* Products Section - Mobile Optimized */}
       <section
         ref={productsRef}
-        className="relative w-screen bg-gradient-to-b from-white to-emerald-50 py-16"
+        className="relative w-screen bg-gradient-to-b from-white to-emerald-50 py-12 md:py-16"
         style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
       >
         <div className="mx-auto max-w-7xl px-4">
-          <div className="mb-12 flex flex-col items-end justify-between gap-4 md:flex-row">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600">Featured Produce</p>
-              <h2 className="mt-2 text-4xl font-bold text-slate-800 md:text-5xl">Fresh picks from the catalog</h2>
-              <p className="mt-3 max-w-2xl text-lg text-slate-600">
+          <div className="mb-8 flex flex-col gap-4 md:mb-12 md:flex-row md:items-end md:justify-between">
+            <div className="text-center md:text-left">
+              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-600 md:text-sm">Featured Produce</p>
+              <h2 className="mt-2 text-3xl font-bold text-slate-800 md:text-4xl lg:text-5xl">Fresh picks from the catalog</h2>
+              <p className="mt-2 max-w-2xl text-sm text-slate-600 md:mt-3 md:text-lg">
                 Hand-picked selection of the freshest fruits and vegetables available.
               </p>
             </div>
             <Link
               to="/category/all"
-              className="group inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:gap-3 hover:bg-emerald-700"
+              className="group inline-flex w-fit items-center justify-center gap-2 self-center rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white transition-all hover:gap-3 hover:bg-emerald-700 md:self-auto md:px-6 md:py-3"
             >
               See all products
-              <span className="text-lg">{"->"}</span>
+              <span className="text-base md:text-lg">{"->"}</span>
             </Link>
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="animate-pulse rounded-3xl bg-white p-6 shadow-xl">
-                  <div className="mb-4 h-48 rounded-2xl bg-gray-200" />
-                  <div className="mb-3 h-6 w-3/4 rounded bg-gray-200" />
-                  <div className="h-4 w-1/2 rounded bg-gray-200" />
+                <div key={i} className="animate-pulse rounded-2xl bg-white p-4 shadow-lg md:rounded-3xl md:p-6">
+                  <div className="mb-3 h-40 rounded-xl bg-gray-200 md:mb-4 md:h-48 md:rounded-2xl" />
+                  <div className="mb-2 h-5 w-3/4 rounded bg-gray-200 md:mb-3 md:h-6" />
+                  <div className="h-3 w-1/2 rounded bg-gray-200 md:h-4" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-4">
               {products.map((product) => (
                 <div key={product._id || product.id} className="product-card-wrapper">
                   <ProductCard product={product} onQuickView={() => navigate(`/product/${product.slug}`)} />
@@ -312,23 +317,24 @@ export function Home() {
         </div>
       </section>
 
+      {/* Newsletter Section - Mobile Optimized */}
       <section
-        className="relative w-screen bg-gradient-to-r from-emerald-800 to-green-800 py-20 text-white"
+        className="relative w-screen bg-gradient-to-r from-emerald-800 to-green-800 py-12 text-white md:py-20"
         style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
       >
         <div className="mx-auto max-w-7xl px-4 text-center">
-          <div className="mx-auto max-w-2xl">
-            <h3 className="mb-4 text-3xl font-bold md:text-4xl">Get Fresh Updates</h3>
-            <p className="mb-8 text-emerald-100">
+          <div className="mx-auto max-w-2xl px-2 md:px-4">
+            <h3 className="mb-3 text-2xl font-bold md:mb-4 md:text-3xl lg:text-4xl">Get Fresh Updates</h3>
+            <p className="mb-6 text-sm text-emerald-100 md:mb-8 md:text-base">
               Subscribe to get notified about new arrivals, seasonal specials, and exclusive offers.
             </p>
-            <form className="mx-auto flex max-w-md flex-col gap-4 sm:flex-row">
+            <form className="mx-auto flex max-w-md flex-col gap-3 sm:flex-row md:gap-4">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 rounded-full px-6 py-3 text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="flex-1 rounded-full px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-yellow-400 md:px-6 md:py-3 md:text-base"
               />
-              <button className="rounded-full bg-yellow-400 px-8 py-3 font-semibold text-emerald-900 transition-all hover:scale-105 hover:bg-yellow-300">
+              <button className="rounded-full bg-yellow-400 px-6 py-2.5 text-sm font-semibold text-emerald-900 transition-all hover:scale-105 hover:bg-yellow-300 md:px-8 md:py-3 md:text-base">
                 Subscribe
               </button>
             </form>

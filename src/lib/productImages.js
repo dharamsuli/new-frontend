@@ -1,3 +1,4 @@
+import { API_ORIGIN } from "./api";
 import carrot from "../assets/carrot.jpg";
 import cauliflower from "../assets/cauliflower.webp";
 import grocery from "../assets/grocery.avif";
@@ -27,8 +28,18 @@ const PRODUCT_IMAGE_MAP = {
 export function resolveProductImage(image) {
   if (!image) return "";
 
-  const normalized = String(image).split("/").pop();
-  return PRODUCT_IMAGE_MAP[normalized] || image;
+  const value = String(image);
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  if (value.startsWith("/uploads/")) {
+    return `${API_ORIGIN}${value}`;
+  }
+
+  const normalized = value.split("/").pop();
+  return PRODUCT_IMAGE_MAP[normalized] || value;
 }
 
 export const PRODUCT_IMAGE_OPTIONS = Object.entries(PRODUCT_IMAGE_MAP)

@@ -99,51 +99,7 @@ export function Category() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-orange-50">
       <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Header Section */}
-        <div ref={headerRef} className="rounded-3xl bg-white/90 backdrop-blur-sm shadow-xl shadow-emerald-100 p-6">
-          <div className="flex flex-col lg:flex-row gap-6 lg:items-center lg:justify-between">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-600 flex items-center gap-2">
-                <span className="w-2 h-2 bg-emerald-600 rounded-full animate-pulse"></span>
-                Browse fresh produce
-              </p>
-              <div className="flex items-center gap-3 mt-2">
-                <span className="text-4xl">{currentCategory.icon}</span>
-                <h2 className="text-3xl font-semibold text-slate-800">
-                  {title}
-                </h2>
-              </div>
-              <p className="mt-1 text-sm text-slate-600">
-                {products.length} {products.length === 1 ? 'product' : 'products'} available
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition-all"
-              >
-                {showFilters ? "Hide Filters" : "Show Filters"}
-              </button>
-              
-              <select
-                value={sort}
-                onChange={(event) => {
-                  setSort(event.target.value);
-                  gsap.fromTo(".product-item",
-                    { opacity: 0, y: 20 },
-                    { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }
-                  );
-                }}
-                className="rounded-full border-2 border-emerald-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-200 transition-all cursor-pointer hover:border-emerald-300"
-              >
-                <option value="featured">⭐ Featured</option>
-                <option value="priceLow">💰 Price low to high</option>
-                <option value="priceHigh">💎 Price high to low</option>
-              </select>
-            </div>
-          </div>
-        </div>
+     
         
         {/* Filters Section */}
         <div ref={filtersRef} className={`${showFilters ? 'block' : 'hidden lg:block'} transition-all duration-300`}>

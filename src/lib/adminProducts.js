@@ -1,4 +1,4 @@
-import { apiRequest } from "./api";
+import { API_BASE, apiRequest } from "./api";
 
 export async function fetchVendorProducts() {
   const response = await apiRequest("/vendor/products");
@@ -8,6 +8,27 @@ export async function fetchVendorProducts() {
 export async function fetchStaticImages() {
   const response = await apiRequest("/products/static-images");
   return response.images ?? [];
+}
+
+export async function uploadProductImage(file) {
+  const token = typeof window !== "undefined" ? localStorage.getItem("nook_native_token") : null;
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await fetch(`${API_BASE}/vendor/images`, {
+    method: "POST",
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData
+  });
+
+  const isJson = response.headers.get("content-type")?.includes("application/json");
+  const payload = isJson ? await response.json() : null;
+
+  if (!response.ok) {
+    throw new Error(payload?.message || "Image upload failed.");
+  }
+
+  return payload;
 }
 
 export async function saveProduct(product) {
