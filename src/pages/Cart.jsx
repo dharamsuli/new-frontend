@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
@@ -21,13 +21,23 @@ export function CartPage() {
   );
 
   const shippingFee = subtotal >= 50000 ? 0 : 4000;
+  const selectedCoupon = couponCode ? coupons[couponCode] : null;
   const appliedCoupon = useMemo(() => {
-    const coupon = coupons[couponCode];
-    if (!coupon || subtotal < coupon.minSubtotal) return null;
-    return coupon;
-  }, [couponCode, subtotal]);
+    if (!selectedCoupon || subtotal < selectedCoupon.minSubtotal) return null;
+    return selectedCoupon;
+  }, [selectedCoupon, subtotal]);
   const discount = appliedCoupon?.discount || 0;
   const total = Math.max(0, subtotal + shippingFee - discount);
+
+  useEffect(() => {
+    if (!couponCode || !selectedCoupon || subtotal >= selectedCoupon.minSubtotal) {
+      return;
+    }
+
+    setCouponCode("");
+    localStorage.removeItem("nook_native_coupon");
+    toast.error(`${selectedCoupon.code} needs a cart subtotal of ${formatINR(selectedCoupon.minSubtotal)}`);
+  }, [couponCode, selectedCoupon, subtotal]);
 
   if (!items.length) {
     return (
@@ -52,8 +62,8 @@ export function CartPage() {
 
         {items.map((item) => (
           <div key={`${item.id}-${item.selectedVariantId || "default"}`} className="flex gap-4 rounded-[28px] bg-white p-5 shadow-lg shadow-emerald-100">
-            <div className="flex h-24 w-24 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-3">
-              <img src={resolveProductImage(item.image || item.images?.[0]?.url)} alt={item.title} className="h-full w-full object-contain" />
+            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)]">
+              <img src={resolveProductImage(item.image || item.images?.[0]?.url)} alt={item.title} className="h-full w-full object-cover" />
             </div>
 
             <div className="flex flex-1 flex-col justify-between gap-4">
@@ -95,10 +105,18 @@ export function CartPage() {
               type="button"
               onClick={() => {
                 const code = couponInput.trim().toUpperCase();
-                if (!coupons[code]) {
+                const coupon = coupons[code];
+
+                if (!coupon) {
                   toast.error("Invalid coupon code");
                   return;
                 }
+
+                if (subtotal < coupon.minSubtotal) {
+                  toast.error(`Add ${formatINR(coupon.minSubtotal - subtotal)} more to use ${code}`);
+                  return;
+                }
+
                 setCouponCode(code);
                 localStorage.setItem("nook_native_coupon", code);
                 toast.success(`${code} applied`);
@@ -110,6 +128,11 @@ export function CartPage() {
           </div>
           <p className="mt-3 text-sm text-slate-500">NOOKNATIVE50: Rs.50 off above Rs.600</p>
           <p className="text-sm text-slate-500">NOOKNATIVE120: Rs.120 off above Rs.1200</p>
+          {appliedCoupon ? (
+            <p className="mt-2 text-sm font-medium text-emerald-700">
+              {appliedCoupon.code} is active for this cart.
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-3 text-sm">

@@ -122,26 +122,28 @@ export function Home() {
     <div ref={rootRef} className="min-h-screen overflow-x-clip bg-gradient-to-b from-emerald-50 via-white to-orange-50">
       <section
         ref={heroRef}
-        className="relative min-h-[78vh] w-screen overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-900 text-white"
+        className="relative min-h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-900 text-white"
         style={{ marginLeft: "calc(50% - 50vw)", marginRight: "calc(50% - 50vw)" }}
       >
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&h=1080&fit=crop"
             alt="Fresh produce background"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover object-center"
           />
+          <div className="absolute inset-0 bg-emerald-950/55" />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/75 via-emerald-900/45 to-transparent" />
         </div>
 
-        <div className="relative w-full px-6 py-16 md:px-10 md:py-24 lg:px-14 lg:py-28">
-          <div className="grid min-h-[78vh] items-center gap-12 lg:grid-cols-[1.15fr,0.85fr]">
+        <div className="relative z-10 w-full px-5 py-16 md:px-8 md:py-20 lg:px-12 lg:py-24">
+          <div className="grid min-h-screen items-center gap-12 lg:grid-cols-[1.1fr,0.9fr]">
             <div className="space-y-8">
               <div className="hero-fade inline-flex rounded-full bg-white/20 px-6 py-2 text-sm font-semibold uppercase tracking-[0.25em] backdrop-blur-sm">
                 Fresh produce. COD only.
               </div>
 
               <div className="space-y-6">
-                <h1 className="hero-fade text-5xl font-bold leading-tight md:text-6xl lg:text-7xl">
+                <h1 className="hero-fade max-w-4xl text-5xl font-bold leading-tight md:text-6xl lg:text-7xl">
                   Nook and Native brings
                   <span className="block bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
                     fruits & vegetables
@@ -149,7 +151,7 @@ export function Home() {
                   to your doorstep.
                 </h1>
 
-                <p className="hero-fade max-w-xl text-lg text-white/90 md:text-xl">
+                <p className="hero-fade max-w-2xl text-lg text-white/90 md:text-xl">
                   Fresh produce, vendor registration, and a proper Node + Mongo backend in one clean storefront.
                 </p>
               </div>
@@ -256,7 +258,7 @@ export function Home() {
                   <h3 className="mt-2 text-2xl font-bold">{category.label}</h3>
                   <p className="mt-1 text-sm opacity-90">{category.blurb}</p>
                   <div className="mt-4 inline-flex items-center gap-2 text-sm font-semibold transition-all group-hover:gap-3">
-                    Shop Now <span>→</span>
+                    Shop Now <span>{"->"}</span>
                   </div>
                 </div>
               </div>
@@ -284,7 +286,7 @@ export function Home() {
               className="group inline-flex items-center gap-2 rounded-full bg-emerald-600 px-6 py-3 text-sm font-semibold text-white transition-all hover:gap-3 hover:bg-emerald-700"
             >
               See all products
-              <span className="text-lg">→</span>
+              <span className="text-lg">{"->"}</span>
             </Link>
           </div>
 

@@ -89,12 +89,12 @@ export function AdminProducts() {
         <div className="space-y-3">
           {products.map((product) => (
             <Link key={product._id} to={`/vendor/products/${product._id}`} className="flex items-center gap-4 rounded-[28px] bg-white p-4 shadow-lg shadow-emerald-100">
-              <div className="flex h-20 w-20 items-center justify-center rounded-[24px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-3">
-                <img src={resolveProductImage(product.image)} alt={product.title} className="h-full w-full object-contain" />
+              <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)]">
+                <img src={resolveProductImage(product.image)} alt={product.title} className="h-full w-full object-cover" />
               </div>
               <div className="flex-1">
                 <p className="text-lg font-semibold text-slate-900">{product.title}</p>
-                <p className="text-sm text-slate-500">{product.category} • {product.unit}</p>
+                <p className="text-sm text-slate-500">{product.category} - {product.unit}</p>
               </div>
               <div className="text-right text-sm">
                 <p className="font-semibold text-slate-900">{formatINR(product.price)}</p>
@@ -193,8 +193,8 @@ export function AdminProducts() {
           {form.image ? (
             <div className="rounded-[24px] bg-slate-50 p-4">
               <p className="mb-3 text-sm font-medium text-slate-700">Selected image preview</p>
-              <div className="flex h-32 w-32 items-center justify-center rounded-[20px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-3">
-                <img src={resolveProductImage(form.image)} alt="Selected product" className="h-full w-full object-contain" />
+              <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-[20px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)]">
+                <img src={resolveProductImage(form.image)} alt="Selected product" className="h-full w-full object-cover" />
               </div>
             </div>
           ) : null}
@@ -228,3 +228,5 @@ function Field({ label, children }) {
     </label>
   );
 }
+
+export default AdminProducts;

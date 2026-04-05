@@ -26,8 +26,10 @@ export function ProductDetail() {
 
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr,0.9fr]">
-      <div className="rounded-[32px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-8 shadow-xl shadow-emerald-100">
-        <img src={imageSrc} alt={product.title} className="mx-auto h-[360px] w-full object-contain" />
+      <div className="rounded-[32px] bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-5 shadow-xl shadow-emerald-100">
+        <div className="overflow-hidden rounded-[28px]">
+          <img src={imageSrc} alt={product.title} className="mx-auto h-[420px] w-full object-cover" />
+        </div>
       </div>
 
       <div className="space-y-6 rounded-[32px] bg-white/90 p-8 shadow-xl shadow-emerald-100">

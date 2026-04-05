@@ -14,8 +14,10 @@ export function ProductCard({ product, onQuickView }) {
       whileHover={{ y: -6 }}
       className="overflow-hidden rounded-[28px] border border-white/80 bg-white/90 shadow-lg shadow-emerald-100"
     >
-      <Link to={`/product/${product.slug}`} className="block bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-6">
-        <img src={imageSrc} alt={product.title} className="mx-auto h-40 w-full object-contain" />
+      <Link to={`/product/${product.slug}`} className="block bg-[linear-gradient(135deg,_#ecfdf5,_#fff7ed)] p-4">
+        <div className="overflow-hidden rounded-[22px]">
+          <img src={imageSrc} alt={product.title} className="mx-auto h-48 w-full object-cover" />
+        </div>
       </Link>
 
       <div className="space-y-3 p-5">

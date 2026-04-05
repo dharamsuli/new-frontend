@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -23,6 +23,14 @@ export function CheckoutPage() {
     const coupon = coupons[storedCoupon];
     return coupon && subtotal >= coupon.minSubtotal ? coupon : null;
   }, [storedCoupon, subtotal]);
+
+  useEffect(() => {
+    if (!storedCoupon || appliedCoupon) {
+      return;
+    }
+
+    localStorage.removeItem("nook_native_coupon");
+  }, [appliedCoupon, storedCoupon]);
 
   const total = Math.max(0, subtotal + shippingFee - (appliedCoupon?.discount || 0));
 
@@ -77,30 +85,30 @@ export function CheckoutPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Full name" error={errors.fullName?.message}>
-            <input className="input" {...register("fullName", { required: "Full name is required" })} />
+            <input className="input" autoComplete="name" {...register("fullName", { required: "Full name is required" })} />
           </Field>
           <Field label="Phone" error={errors.phone?.message}>
-            <input className="input" {...register("phone", { required: "Phone is required" })} />
+            <input className="input" autoComplete="tel" {...register("phone", { required: "Phone is required" })} />
           </Field>
         </div>
 
         <Field label="Address line 1" error={errors.addressLine1?.message}>
-          <input className="input" {...register("addressLine1", { required: "Address is required" })} />
+          <input className="input" autoComplete="address-line1" {...register("addressLine1", { required: "Address is required" })} />
         </Field>
 
         <Field label="Address line 2">
-          <input className="input" {...register("addressLine2")} />
+          <input className="input" autoComplete="address-line2" {...register("addressLine2")} />
         </Field>
 
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="City" error={errors.city?.message}>
-            <input className="input" {...register("city", { required: "City is required" })} />
+            <input className="input" autoComplete="address-level2" {...register("city", { required: "City is required" })} />
           </Field>
           <Field label="State" error={errors.state?.message}>
-            <input className="input" {...register("state", { required: "State is required" })} />
+            <input className="input" autoComplete="address-level1" {...register("state", { required: "State is required" })} />
           </Field>
           <Field label="Postal code" error={errors.postalCode?.message}>
-            <input className="input" {...register("postalCode", { required: "Postal code is required" })} />
+            <input className="input" autoComplete="postal-code" {...register("postalCode", { required: "Postal code is required" })} />
           </Field>
         </div>
 

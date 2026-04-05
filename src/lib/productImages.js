@@ -1,29 +1,27 @@
-import apples from "../assets/products/apples.svg";
-import bananas from "../assets/products/bananas.svg";
-import carrots from "../assets/products/carrots.svg";
-import coriander from "../assets/products/coriander.svg";
-import cucumbers from "../assets/products/cucumbers.svg";
-import lemons from "../assets/products/lemons.svg";
-import mangoes from "../assets/products/mangoes.svg";
-import onions from "../assets/products/onions.svg";
-import oranges from "../assets/products/oranges.svg";
-import potatoes from "../assets/products/potatoes.svg";
-import spinach from "../assets/products/spinach.svg";
-import tomatoes from "../assets/products/tomatoes.svg";
+import carrot from "../assets/carrot.jpg";
+import cauliflower from "../assets/cauliflower.webp";
+import grocery from "../assets/grocery.avif";
+import leaves from "../assets/leaves.jpg";
+import tomato from "../assets/tomato.avif";
 
 const PRODUCT_IMAGE_MAP = {
-  "apples.svg": apples,
-  "bananas.svg": bananas,
-  "carrots.svg": carrots,
-  "coriander.svg": coriander,
-  "cucumbers.svg": cucumbers,
-  "lemons.svg": lemons,
-  "mangoes.svg": mangoes,
-  "onions.svg": onions,
-  "oranges.svg": oranges,
-  "potatoes.svg": potatoes,
-  "spinach.svg": spinach,
-  "tomatoes.svg": tomatoes
+  "carrot.jpg": carrot,
+  "cauliflower.webp": cauliflower,
+  "grocery.avif": grocery,
+  "leaves.jpg": leaves,
+  "tomato.avif": tomato,
+  "apples.svg": grocery,
+  "bananas.svg": grocery,
+  "carrots.svg": carrot,
+  "coriander.svg": leaves,
+  "cucumbers.svg": grocery,
+  "lemons.svg": grocery,
+  "mangoes.svg": grocery,
+  "onions.svg": grocery,
+  "oranges.svg": grocery,
+  "potatoes.svg": grocery,
+  "spinach.svg": leaves,
+  "tomatoes.svg": tomato
 };
 
 export function resolveProductImage(image) {
@@ -33,9 +31,9 @@ export function resolveProductImage(image) {
   return PRODUCT_IMAGE_MAP[normalized] || image;
 }
 
-export const PRODUCT_IMAGE_OPTIONS = Object.entries(PRODUCT_IMAGE_MAP).map(
-  ([fileName, src]) => ({
+export const PRODUCT_IMAGE_OPTIONS = Object.entries(PRODUCT_IMAGE_MAP)
+  .filter(([fileName]) => ["carrot.jpg", "cauliflower.webp", "grocery.avif", "leaves.jpg", "tomato.avif"].includes(fileName))
+  .map(([fileName, src]) => ({
     fileName,
     src
-  })
-);
+  }));

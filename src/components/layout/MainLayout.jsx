@@ -36,6 +36,7 @@ export function MainLayout() {
   }, [banners.length]);
 
   const closeMobile = () => setMobileOpen(false);
+  const isHomePage = pathname === "/";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff7e8,_#f3faef_35%,_#eef8ff_100%)] text-slate-900">
@@ -164,7 +165,7 @@ export function MainLayout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <main className={isHomePage ? "py-0" : "mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8"}>
         <Outlet />
       </main>
 
