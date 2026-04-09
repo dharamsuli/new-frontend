@@ -40,3 +40,11 @@ export async function saveProduct(product) {
 
   return response.product;
 }
+
+export async function deleteProduct(productId) {
+  const response = await apiRequest(`/vendor/products/${productId}`, {
+    method: "DELETE"
+  });
+
+  return response;
+}

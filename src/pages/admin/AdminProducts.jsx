@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
-import { Link, useParams } from "react-router-dom";
-import { fetchVendorProducts, saveProduct, uploadProductImages } from "../../lib/adminProducts";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { deleteProduct, fetchVendorProducts, saveProduct, uploadProductImages } from "../../lib/adminProducts";
 import { useAdminGuard } from "../../hooks/useAdminGuard";
+import { useAuth } from "../../hooks/useAuth";
 import { formatINR } from "../../utils/currency";
 import { resolveProductImage } from "../../lib/productImages";
 
@@ -48,10 +49,13 @@ function normalizeImages(images, fallbackImage = "") {
 
 export function AdminProducts() {
   const { isAdmin } = useAdminGuard();
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const { productId } = useParams();
   const [products, setProducts] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
@@ -117,6 +121,31 @@ export function AdminProducts() {
       toast.error(error.message);
     } finally {
       setUploadingImage(false);
+    }
+  }
+
+  async function handleDeleteProduct() {
+    if (!editingProduct || user?.role !== "admin") {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${editingProduct.title}"? This cannot be undone.`);
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      await deleteProduct(editingProduct._id);
+      const refreshed = await fetchVendorProducts();
+      setProducts(refreshed);
+      setForm(emptyForm);
+      navigate("/vendor/products");
+      toast.success("Product deleted");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -186,7 +215,7 @@ export function AdminProducts() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-slate-800">{product.title}</p>
-                  <p className="mt-0.5 text-xs text-slate-400 capitalize">{product.category} · {product.unit}</p>
+                  <p className="mt-0.5 text-xs text-slate-400 capitalize">{product.category} | {product.unit}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-slate-900">{formatINR(product.price)}</p>
@@ -257,7 +286,7 @@ export function AdminProducts() {
           }}
         >
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="??" title="Basic Info" />
+            <SectionLabel title="Basic Info" />
             <Field label="Product Title">
               <input
                 className="field-input"
@@ -297,7 +326,7 @@ export function AdminProducts() {
           </div>
 
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="??" title="Pricing & Stock" />
+            <SectionLabel title="Pricing & Stock" />
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Price (Rs)">
                 <input className="field-input" type="number" step="0.01" placeholder="49" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} />
@@ -312,7 +341,7 @@ export function AdminProducts() {
           </div>
 
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="IMG" title="Product Images" />
+            <SectionLabel title="Product Images" />
 
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -420,7 +449,7 @@ export function AdminProducts() {
           </div>
 
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="??" title="Content" />
+            <SectionLabel title="Content" />
             <Field label="Short Description">
               <input
                 className="field-input"
@@ -450,22 +479,34 @@ export function AdminProducts() {
           </div>
 
           <div className="flex items-center justify-between gap-4 rounded-b-3xl bg-slate-50/80 px-7 py-5">
-            <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-slate-700 select-none">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  className="sr-only"
-                  checked={form.isPublished}
-                  onChange={(e) => setForm((c) => ({ ...c, isPublished: e.target.checked }))}
-                />
-                <div className={`h-5 w-9 rounded-full transition-colors ${form.isPublished ? "bg-emerald-500" : "bg-slate-300"}`} />
-                <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isPublished ? "translate-x-4" : ""}`} />
-              </div>
-              {form.isPublished ? "Published" : "Draft"}
-            </label>
+            <div className="flex items-center gap-3">
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-slate-700 select-none">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    className="sr-only"
+                    checked={form.isPublished}
+                    onChange={(e) => setForm((c) => ({ ...c, isPublished: e.target.checked }))}
+                  />
+                  <div className={`h-5 w-9 rounded-full transition-colors ${form.isPublished ? "bg-emerald-500" : "bg-slate-300"}`} />
+                  <div className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${form.isPublished ? "translate-x-4" : ""}`} />
+                </div>
+                {form.isPublished ? "Published" : "Draft"}
+              </label>
+              {editingProduct && user?.role === "admin" ? (
+                <button
+                  type="button"
+                  onClick={handleDeleteProduct}
+                  disabled={saving || uploadingImage || deleting}
+                  className="rounded-full border border-rose-200 px-5 py-2.5 text-sm font-semibold text-rose-600 transition hover:bg-rose-50 disabled:opacity-60"
+                >
+                  {deleting ? "Deleting..." : "Delete Product"}
+                </button>
+              ) : null}
+            </div>
             <button
               type="submit"
-              disabled={saving || uploadingImage}
+              disabled={saving || uploadingImage || deleting}
               className="flex items-center gap-2 rounded-full bg-emerald-700 px-7 py-2.5 text-sm font-semibold text-white shadow-sm shadow-emerald-200 transition hover:bg-emerald-800 disabled:opacity-60"
             >
               {saving ? (
@@ -510,10 +551,9 @@ export function AdminProducts() {
   );
 }
 
-function SectionLabel({ icon, title }) {
+function SectionLabel({ title }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-base">{icon}</span>
+    <div>
       <span className="text-xs font-bold uppercase tracking-widest text-slate-400">{title}</span>
     </div>
   );
