@@ -46,16 +46,16 @@ export function MainLayout() {
           {banners[activeBanner]}
         </div>
 
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-          <Link to="/" className="flex items-center gap-3" onClick={closeMobile}>
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <Link to="/" className="flex min-w-0 items-center gap-3" onClick={closeMobile}>
             <img
               src={nookNativeLogo}
               alt="Nook and Native logo"
-              className="h-14 w-14 rounded-[18px] object-cover shadow-lg shadow-emerald-200 md:h-16 md:w-16"
+              className="h-12 w-12 shrink-0 rounded-[16px] object-cover shadow-lg shadow-emerald-200 sm:h-14 sm:w-14 md:h-16 md:w-16"
             />
-            <div>
-              <p className="text-lg font-semibold">Nook and Native</p>
-              <p className="text-xs text-slate-500">Fresh produce marketplace</p>
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold sm:text-lg">Nook and Native</p>
+              <p className="hidden text-xs text-slate-500 sm:block">Fresh produce marketplace</p>
             </div>
           </Link>
 
@@ -103,23 +103,44 @@ export function MainLayout() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3 md:hidden">
-            <Link to="/cart" className="rounded-full bg-slate-900 px-3 py-2 text-xs font-semibold text-white">
-              Cart {itemCount}
+          <div className="flex shrink-0 items-center gap-2 md:hidden">
+            <Link
+              to="/cart"
+              className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white shadow-sm shadow-emerald-200"
+            >
+              <span>Cart</span>
+              <span className="rounded-full bg-white/20 px-2 py-0.5 text-[11px]">{itemCount}</span>
             </Link>
             <button
               type="button"
               onClick={() => setMobileOpen((value) => !value)}
-              className="rounded-full border border-slate-200 px-3 py-2 text-sm font-semibold"
+              aria-expanded={mobileOpen}
+              aria-label="Toggle menu"
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-emerald-100 bg-white text-slate-700 shadow-sm"
             >
-              Menu
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                {mobileOpen ? (
+                  <path d="M6 6L18 18M18 6L6 18" />
+                ) : (
+                  <>
+                    <path d="M4 7H20" />
+                    <path d="M4 12H20" />
+                    <path d="M4 17H20" />
+                  </>
+                )}
+              </svg>
             </button>
           </div>
         </div>
 
         {mobileOpen && (
-          <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden">
-            <div className="flex flex-col gap-2">
+          <div className="border-t border-emerald-100 bg-white/95 px-4 py-4 shadow-lg shadow-emerald-100/40 backdrop-blur md:hidden">
+            <div className="mb-4 rounded-[24px] bg-[linear-gradient(135deg,_#f0fdf4,_#ecfdf5,_#fefce8)] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-700">Browse</p>
+              <p className="mt-1 text-sm text-slate-600">Shop fresh produce, check your account, and track orders from one menu.</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
               {[
                 ["/", "Home"],
                 ["/category/all", "All Products"],
@@ -135,7 +156,11 @@ export function MainLayout() {
                   to={to}
                   onClick={closeMobile}
                   className={({ isActive }) =>
-                    `rounded-2xl px-4 py-3 text-sm font-medium ${isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-50 text-slate-700"}`
+                    `rounded-[20px] px-4 py-3 text-sm font-medium shadow-sm transition ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-50 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    }`
                   }
                 >
                   {label}
@@ -146,7 +171,11 @@ export function MainLayout() {
                   to="/orders"
                   onClick={closeMobile}
                   className={({ isActive }) =>
-                    `rounded-2xl px-4 py-3 text-sm font-medium ${isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-50 text-slate-700"}`
+                    `rounded-[20px] px-4 py-3 text-sm font-medium shadow-sm transition ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-50 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    }`
                   }
                 >
                   Orders
@@ -157,7 +186,11 @@ export function MainLayout() {
                   to="/vendor"
                   onClick={closeMobile}
                   className={({ isActive }) =>
-                    `rounded-2xl px-4 py-3 text-sm font-medium ${isActive ? "bg-emerald-100 text-emerald-800" : "bg-slate-50 text-slate-700"}`
+                    `rounded-[20px] px-4 py-3 text-sm font-medium shadow-sm transition ${
+                      isActive
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-slate-50 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700"
+                    }`
                   }
                 >
                   Admin Dashboard

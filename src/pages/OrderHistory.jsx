@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { resolveProductImage } from "../lib/productImages";
 import { fetchOrdersForUser } from "../utils/orders";
 import { formatINR } from "../utils/currency";
 
@@ -79,10 +80,24 @@ export function OrderHistoryPage() {
 
           <div className="mt-5 space-y-3 border-t border-slate-100 pt-5">
             {order.items.map((item) => (
-              <div key={`${order._id}-${item.productId}`} className="flex items-center justify-between gap-4 text-sm">
-                <div>
-                  <p className="font-semibold text-slate-900">{item.title}</p>
-                  <p className="text-slate-500">Qty {item.qty} • {item.unit}</p>
+            <div key={`${order._id}-${item.productId}`} className="flex items-center justify-between gap-4 text-sm">
+                <div className="flex items-center gap-3">
+                  {item.image ? (
+                    <img
+                      src={resolveProductImage(item.image)}
+                      alt={item.title}
+                      className="h-16 w-16 rounded-[18px] object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center rounded-[18px] bg-slate-100 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
+                      Item
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="font-semibold text-slate-900">{item.title}</p>
+                    <p className="text-slate-500">Qty {item.qty} • {item.unit}</p>
+                  </div>
                 </div>
                 <p className="font-semibold text-slate-900">{formatINR(item.price * item.qty)}</p>
               </div>

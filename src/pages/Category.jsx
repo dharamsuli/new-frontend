@@ -4,209 +4,166 @@ import { useProducts } from "../hooks/useProducts";
 import { ProductGrid } from "../components/products/ProductGrid";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { PiPlantFill,PiAppleLogo,  PiLeafFill } from "react-icons/pi";
+import { TbCarrot } from "react-icons/tb";
+import { GiHerbsBundle } from "react-icons/gi";
+import { LuSprout } from "react-icons/lu";
 
 gsap.registerPlugin(ScrollTrigger);
 
 const filters = [
-  { slug: "all", label: "All", icon: "🌾", color: "from-gray-500 to-gray-600" },
-  { slug: "fruits", label: "Fruits", icon: "🍎", color: "from-red-500 to-orange-500" },
-  { slug: "vegetables", label: "Vegetables", icon: "🥕", color: "from-green-600 to-emerald-500" },
-  { slug: "leafy", label: "Leafy Greens", icon: "🥬", color: "from-lime-500 to-green-600" },
-  { slug: "herbs", label: "Herbs", icon: "🌿", color: "from-emerald-500 to-teal-500" }
+  { slug: "all",        label: "All",          Icon: PiPlantFill   },
+  { slug: "fruits",     label: "Fruits",       Icon: PiAppleLogo     },
+  { slug: "vegetables", label: "Vegetables",   Icon: TbCarrot      },
+  { slug: "leafy",      label: "Leafy Greens", Icon: PiLeafFill    },
+  { slug: "herbs",      label: "Herbs",        Icon: GiHerbsBundle },
 ];
 
 export function Category() {
   const { categorySlug = "all" } = useParams();
   const navigate = useNavigate();
   const [sort, setSort] = useState("featured");
-  const [showFilters, setShowFilters] = useState(false);
   const { products, isLoading } = useProducts({
     category: categorySlug,
-    sort: sort === "featured" ? undefined : sort
+    sort: sort === "featured" ? undefined : sort,
   });
-  
-  const headerRef = useRef(null);
-  const filtersRef = useRef(null);
+
+  const filtersRef  = useRef(null);
   const productsRef = useRef(null);
-  
-  const title = useMemo(() => {
-    const current = filters.find((item) => item.slug === categorySlug);
-    return current ? current.label : "All";
-  }, [categorySlug]);
-  
-  const currentCategory = useMemo(() => {
-    return filters.find((item) => item.slug === categorySlug) || filters[0];
-  }, [categorySlug]);
-  
+
+  const currentFilter = useMemo(
+    () => filters.find((f) => f.slug === categorySlug) || filters[0],
+    [categorySlug]
+  );
+
+  // Pills entrance
   useEffect(() => {
-    // Kill existing ScrollTriggers
-    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    
-    // Header animation
-    gsap.fromTo(headerRef.current,
-      { opacity: 0, y: -30 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }
-    );
-    
-    // Filters animation
-    gsap.fromTo(".filter-button",
-      { opacity: 0, scale: 0.9 },
-      {
-        opacity: 1,
-        scale: 1,
-        duration: 0.4,
-        stagger: 0.05,
-        ease: "back.out(0.5)",
-        scrollTrigger: {
-          trigger: filtersRef.current,
-          start: "top 90%",
-          toggleActions: "play none none reset"
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".cat-pill",
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power3.out", delay: 0.1 }
+      );
+    }, filtersRef);
+    return () => ctx.revert();
+  }, []);
+
+  // Products reveal
+  useEffect(() => {
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".product-item",
+        { opacity: 0, y: 22 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.5,
+          stagger: 0.07,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: productsRef.current,
+            start: "top 88%",
+            toggleActions: "play none none reset",
+          },
         }
-      }
-    );
-    
-    // Products animation
-    gsap.fromTo(".product-item",
-      { opacity: 0, y: 30 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.5,
-        stagger: 0.08,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: productsRef.current,
-          start: "top 85%",
-          toggleActions: "play none none reset"
-        }
-      }
-    );
-    
+      );
+    }, productsRef);
     return () => {
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+      ctx.revert();
+      ScrollTrigger.getAll().forEach((t) => t.kill());
     };
-  }, [categorySlug]); // Re-run when category changes
-  
-  // Refresh when products load
-  useEffect(() => {
-    if (!isLoading && products.length > 0) {
-      setTimeout(() => {
-        ScrollTrigger.refresh();
-      }, 100);
-    }
-  }, [isLoading, products]);
-  
+  }, [categorySlug, isLoading]);
+
+  const handleFilterClick = (slug) => {
+    if (slug === categorySlug) return;
+    gsap.to(".product-item", {
+      opacity: 0,
+      y: -8,
+      duration: 0.18,
+      stagger: 0.03,
+      onComplete: () => navigate(`/category/${slug}`),
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-orange-50">
-      <div className="container mx-auto px-4 py-8 space-y-8">
-     
-        
-        {/* Filters Section */}
-        <div ref={filtersRef} className={`${showFilters ? 'block' : 'hidden lg:block'} transition-all duration-300`}>
-          <div className="rounded-3xl bg-white/80 backdrop-blur-sm shadow-lg shadow-emerald-100 p-6">
-            <h3 className="text-sm font-semibold text-slate-600 mb-4 flex items-center gap-2">
-              <span>🔍</span> Filter by category
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              {filters.map((filter) => (
-                <button
-                  key={filter.slug}
-                  type="button"
-                  onClick={() => {
-                    navigate(`/category/${filter.slug}`);
-                    gsap.fromTo(".product-item",
-                      { opacity: 0, y: 20 },
-                      { opacity: 1, y: 0, duration: 0.3, stagger: 0.05 }
-                    );
-                  }}
-                  className="filter-button group relative overflow-hidden rounded-full px-5 py-2.5 text-sm font-semibold transition-all duration-300 hover:scale-105"
-                >
-                  <span className={`relative z-10 flex items-center gap-2 ${
-                    filter.slug === categorySlug ? 'text-white' : 'text-slate-700'
-                  }`}>
-                    <span className="text-lg">{filter.icon}</span>
-                    {filter.label}
-                  </span>
-                  <div className={`absolute inset-0 transition-transform duration-300 ${
-                    filter.slug === categorySlug 
-                      ? `bg-gradient-to-r ${filter.color} scale-100` 
-                      : 'bg-slate-100 scale-0 group-hover:scale-100'
-                  }`}></div>
-                  {filter.slug === categorySlug && (
-                    <div className="absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  )}
-                </button>
-              ))}
-            </div>
+      <div className="max-w-6xl mx-auto px-5 py-10 space-y-8">
+
+        {/* Filter Pills */}
+        <nav ref={filtersRef} className="flex flex-wrap gap-2">
+          {filters.map(({ slug, label, Icon }) => {
+            const active = slug === categorySlug;
+            return (
+              <button
+                key={slug}
+                type="button"
+                onClick={() => handleFilterClick(slug)}
+                className={`cat-pill flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200
+                  ${active
+                    ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-200"
+                    : "bg-white border-gray-200 text-slate-600 hover:border-emerald-400 hover:text-emerald-600"
+                  }`}
+              >
+                <Icon size={15} />
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Heading */}
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-emerald-500 mb-1 font-semibold">
+              Browse
+            </p>
+            <h1 className="text-3xl font-bold text-slate-800" style={{ letterSpacing: "-0.02em" }}>
+              {currentFilter.label}
+            </h1>
           </div>
+          {!isLoading && products.length > 0 && (
+            <p className="text-sm text-slate-400">{products.length} items</p>
+          )}
         </div>
-        
-        {/* Products Grid */}
+
+        <div className="h-px bg-emerald-100 w-full" />
+
+        {/* Products */}
         <div ref={productsRef}>
           {isLoading ? (
-            <div className="rounded-3xl bg-white/80 backdrop-blur-sm p-12 text-center shadow-xl">
-              <div className="inline-block">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-emerald-600 border-t-transparent"></div>
-              </div>
-              <p className="mt-4 text-slate-600 font-medium">Loading fresh products...</p>
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-8 h-8 rounded-full border-2 border-emerald-600 border-t-transparent animate-spin" />
+              <p className="text-sm text-slate-400">Loading fresh products...</p>
             </div>
           ) : products.length === 0 ? (
-            <div className="rounded-3xl bg-white/80 backdrop-blur-sm p-12 text-center shadow-xl">
-              <div className="text-6xl mb-4">🌱</div>
-              <h3 className="text-xl font-semibold text-slate-800 mb-2">No products found</h3>
-              <p className="text-slate-600 mb-4">
-                We couldn't find any {title.toLowerCase()} in our collection right now.
+            <div className="flex flex-col items-center justify-center py-24 gap-3 text-center">
+              <LuSprout size={40} className="text-emerald-300" />
+              <p className="text-slate-500 text-sm">
+                No {currentFilter.label.toLowerCase()} available right now.
               </p>
               <button
-                onClick={() => navigate('/category/all')}
-                className="rounded-full bg-emerald-600 px-6 py-2 text-white font-semibold hover:bg-emerald-700 transition-all"
+                onClick={() => navigate("/category/all")}
+                className="mt-2 text-sm text-emerald-600 underline underline-offset-2 hover:text-emerald-800 transition-colors"
               >
-                Browse all products
+                Browse everything
               </button>
             </div>
           ) : (
-            <>
-              <div className="mb-4 flex justify-between items-center">
-                <p className="text-sm text-slate-500">
-                  Showing <span className="font-semibold text-emerald-600">{products.length}</span> fresh items
-                </p>
-                <div className="flex gap-1">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-300"></div>
-                  ))}
-                </div>
-              </div>
-              <ProductGrid 
-                products={products} 
-                onQuickView={(product) => {
-                  gsap.to(".product-item", {
-                    opacity: 0,
-                    duration: 0.2,
-                    onComplete: () => {
-                      navigate(`/product/${product.slug}`);
-                    }
-                  });
-                }} 
-              />
-            </>
+            <ProductGrid
+              products={products}
+              onQuickView={(product) => {
+                gsap.to(".product-item", {
+                  opacity: 0,
+                  duration: 0.18,
+                  stagger: 0.03,
+                  onComplete: () => navigate(`/product/${product.slug}`),
+                });
+              }}
+            />
           )}
         </div>
-        
-        {/* Seasonal Banner */}
-        <div className="rounded-3xl bg-gradient-to-r from-emerald-600 to-green-600 p-8 text-white shadow-xl">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="text-5xl">🎯</div>
-              <div>
-                <h3 className="text-xl font-bold">Seasonal Specials</h3>
-                <p className="text-emerald-100">Get the best deals on fresh seasonal produce</p>
-              </div>
-            </div>
-            <button className="rounded-full bg-white px-6 py-2.5 font-semibold text-emerald-700 transition-all hover:bg-emerald-50 hover:scale-105">
-              View Offers →
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
   );
