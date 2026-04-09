@@ -6,7 +6,7 @@ import { resolveProductImage } from "../../lib/productImages";
 
 export function ProductCard({ product, onQuickView }) {
   const soldOut = (product.stock ?? 0) <= 0;
-  const imageSrc = resolveProductImage(product.image);
+  const imageSrc = resolveProductImage(product.images?.[0] || product.image);
 
   return (
     <motion.article

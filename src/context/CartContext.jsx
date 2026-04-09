@@ -63,7 +63,7 @@ export function CartProvider({ children }) {
           qty: clampQty(qty, stock),
           stock,
           unit: product.unit,
-          image: product.image,
+          image: product.images?.[0] || product.image,
           selectedVariantId
         }
       ];

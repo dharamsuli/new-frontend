@@ -14,8 +14,8 @@ const contacts = [
   {
     Icon: TbPhone,
     label: "Phone",
-    value: "+91 90000 00000",
-    href: "tel:+919000000000",
+    value: "+91 998118 33999",
+    href: "https://wa.me/919811833999?text=Hi%20Nook%20and%20Native%2C%20I%20need%20help.",
   },
 ];
 

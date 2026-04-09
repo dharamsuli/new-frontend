@@ -11,18 +11,43 @@ import { LuSprout } from "react-icons/lu";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const filters = [
-  { slug: "all",        label: "All",          Icon: PiPlantFill   },
-  { slug: "fruits",     label: "Fruits",       Icon: PiAppleLogo     },
-  { slug: "vegetables", label: "Vegetables",   Icon: TbCarrot      },
-  { slug: "leafy",      label: "Leafy Greens", Icon: PiLeafFill    },
-  { slug: "herbs",      label: "Herbs",        Icon: GiHerbsBundle },
-];
+function toCategorySlug(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getCategoryIcon(category) {
+  const normalized = toCategorySlug(category);
+
+  if (normalized.includes("fruit") || normalized.includes("mango") || normalized.includes("apple")) {
+    return PiAppleLogo;
+  }
+
+  if (normalized.includes("vegetable") || normalized.includes("veggie") || normalized.includes("carrot")) {
+    return TbCarrot;
+  }
+
+  if (normalized.includes("leaf")) {
+    return PiLeafFill;
+  }
+
+  if (normalized.includes("herb")) {
+    return GiHerbsBundle;
+  }
+
+  return PiPlantFill;
+}
 
 export function Category() {
   const { categorySlug = "all" } = useParams();
   const navigate = useNavigate();
   const [sort, setSort] = useState("featured");
+  const { products: allProducts } = useProducts({
+    sort: sort === "featured" ? undefined : sort,
+  });
   const { products, isLoading } = useProducts({
     category: categorySlug,
     sort: sort === "featured" ? undefined : sort,
@@ -31,9 +56,30 @@ export function Category() {
   const filtersRef  = useRef(null);
   const productsRef = useRef(null);
 
+  const filters = useMemo(() => {
+    const categoryFilters = Array.from(
+      new Map(
+        allProducts
+          .map((product) => String(product.category || "").trim())
+          .filter(Boolean)
+          .map((category) => [
+            toCategorySlug(category),
+            { slug: toCategorySlug(category), label: category, Icon: getCategoryIcon(category) },
+          ])
+      ).values()
+    );
+
+    return [{ slug: "all", label: "All", Icon: PiPlantFill }, ...categoryFilters];
+  }, [allProducts]);
+
   const currentFilter = useMemo(
-    () => filters.find((f) => f.slug === categorySlug) || filters[0],
-    [categorySlug]
+    () =>
+      filters.find((f) => f.slug === categorySlug) || {
+        slug: categorySlug,
+        label: categorySlug === "all" ? "All" : categorySlug.replace(/-/g, " "),
+        Icon: PiPlantFill,
+      },
+    [categorySlug, filters]
   );
 
   // Pills entrance

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useParams } from "react-router-dom";
-import { fetchStaticImages, fetchVendorProducts, saveProduct, uploadProductImage } from "../../lib/adminProducts";
+import { fetchVendorProducts, saveProduct, uploadProductImages } from "../../lib/adminProducts";
 import { useAdminGuard } from "../../hooks/useAdminGuard";
 import { formatINR } from "../../utils/currency";
 import { resolveProductImage } from "../../lib/productImages";
@@ -9,12 +9,13 @@ import { resolveProductImage } from "../../lib/productImages";
 const emptyForm = {
   title: "",
   slug: "",
-  category: "fruits",
+  category: "",
   unit: "1 kg",
   price: "",
   compareAtPrice: "",
   stock: "",
   image: "",
+  images: [],
   shortDescription: "",
   description: "",
   badges: "",
@@ -31,11 +32,24 @@ function toPaiseValue(value) {
   return Math.round(Number(value) * 100);
 }
 
+function normalizeImages(images, fallbackImage = "") {
+  const next = [];
+
+  for (const value of [...(Array.isArray(images) ? images : []), fallbackImage]) {
+    const normalized = String(value || "").trim();
+    if (!normalized || next.includes(normalized)) {
+      continue;
+    }
+    next.push(normalized);
+  }
+
+  return next;
+}
+
 export function AdminProducts() {
   const { isAdmin } = useAdminGuard();
   const { productId } = useParams();
   const [products, setProducts] = useState([]);
-  const [imageOptions, setImageOptions] = useState([]);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -44,12 +58,8 @@ export function AdminProducts() {
 
   useEffect(() => {
     async function load() {
-      const [vendorProducts, staticImages] = await Promise.all([
-        fetchVendorProducts(),
-        fetchStaticImages()
-      ]);
+      const vendorProducts = await fetchVendorProducts();
       setProducts(vendorProducts);
-      setImageOptions(staticImages);
     }
     if (isAdmin) {
       load().catch((error) => toast.error(error.message));
@@ -62,7 +72,13 @@ export function AdminProducts() {
   );
 
   useEffect(() => {
-    if (!editingProduct) { setForm(emptyForm); return; }
+    if (!editingProduct) {
+      setForm(emptyForm);
+      return;
+    }
+
+    const images = normalizeImages(editingProduct.images, editingProduct.image);
+
     setForm({
       id: editingProduct._id,
       title: editingProduct.title,
@@ -72,7 +88,8 @@ export function AdminProducts() {
       price: toRupeeInput(editingProduct.price),
       compareAtPrice: toRupeeInput(editingProduct.compareAtPrice),
       stock: editingProduct.stock,
-      image: editingProduct.image,
+      image: images[0] || "",
+      images,
       shortDescription: editingProduct.shortDescription || "",
       description: editingProduct.description || "",
       badges: (editingProduct.badges || []).join(", "),
@@ -80,18 +97,49 @@ export function AdminProducts() {
     });
   }, [editingProduct]);
 
-  async function handleFileUpload(file) {
-    if (!file) return;
+  async function handleFileUpload(fileList) {
+    const files = Array.from(fileList || []);
+    if (!files.length) return;
+
     setUploadingImage(true);
     try {
-      const uploaded = await uploadProductImage(file);
-      setForm((current) => ({ ...current, image: uploaded.image }));
-      toast.success("Image uploaded");
+      const uploaded = await uploadProductImages(files);
+      setForm((current) => {
+        const images = normalizeImages([...current.images, ...(uploaded.images || [])], current.image);
+        return {
+          ...current,
+          image: images[0] || "",
+          images
+        };
+      });
+      toast.success(`${files.length} image${files.length > 1 ? "s" : ""} uploaded`);
     } catch (error) {
       toast.error(error.message);
     } finally {
       setUploadingImage(false);
     }
+  }
+
+  function removeImage(imageToRemove) {
+    setForm((current) => {
+      const images = current.images.filter((image) => image !== imageToRemove);
+      return {
+        ...current,
+        image: images[0] || "",
+        images
+      };
+    });
+  }
+
+  function setPrimaryImage(imageToPromote) {
+    setForm((current) => {
+      const images = [imageToPromote, ...current.images.filter((image) => image !== imageToPromote)];
+      return {
+        ...current,
+        image: images[0] || "",
+        images
+      };
+    });
   }
 
   if (!isAdmin) {
@@ -105,7 +153,6 @@ export function AdminProducts() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[380px,1fr]">
-      {/* ── Product List ── */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
           <div>
@@ -122,37 +169,38 @@ export function AdminProducts() {
         </div>
 
         <div className="space-y-2">
-          {products.map((product) => (
-            <Link
-              key={product._id}
-              to={`/vendor/products/${product._id}`}
-              className={`group flex items-center gap-3 rounded-2xl border p-3 transition-all duration-150 ${
-                product._id === productId
-                  ? "border-emerald-200 bg-emerald-50 shadow-sm"
-                  : "border-transparent bg-white shadow-sm shadow-slate-100 hover:border-slate-200 hover:shadow-md"
-              }`}
-            >
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-orange-50">
-                <img src={resolveProductImage(product.image)} alt={product.title} className="h-full w-full object-cover" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-slate-800">{product.title}</p>
-                <p className="mt-0.5 text-xs text-slate-400 capitalize">{product.category} · {product.unit}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-slate-900">{formatINR(product.price)}</p>
-                <p className={`mt-0.5 text-xs font-medium ${product.stock < 10 ? "text-rose-500" : "text-slate-400"}`}>
-                  {product.stock} left
-                </p>
-              </div>
-            </Link>
-          ))}
+          {products.map((product) => {
+            const previewImage = product.images?.[0] || product.image;
+            return (
+              <Link
+                key={product._id}
+                to={`/vendor/products/${product._id}`}
+                className={`group flex items-center gap-3 rounded-2xl border p-3 transition-all duration-150 ${
+                  product._id === productId
+                    ? "border-emerald-200 bg-emerald-50 shadow-sm"
+                    : "border-transparent bg-white shadow-sm shadow-slate-100 hover:border-slate-200 hover:shadow-md"
+                }`}
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-orange-50">
+                  <img src={resolveProductImage(previewImage)} alt={product.title} className="h-full w-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-slate-800">{product.title}</p>
+                  <p className="mt-0.5 text-xs text-slate-400 capitalize">{product.category} � {product.unit}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-slate-900">{formatINR(product.price)}</p>
+                  <p className={`mt-0.5 text-xs font-medium ${product.stock < 10 ? "text-rose-500" : "text-slate-400"}`}>
+                    {product.stock} left
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       </div>
 
-      {/* ── Form Panel ── */}
       <div className="rounded-3xl border border-slate-100 bg-white shadow-xl shadow-slate-100/60">
-        {/* Form header */}
         <div className="border-b border-slate-100 px-7 py-5">
           <h2 className="text-xl font-bold tracking-tight text-slate-900">
             {editingProduct ? "Edit product" : "Create product"}
@@ -166,11 +214,16 @@ export function AdminProducts() {
           className="divide-y divide-slate-50"
           onSubmit={async (event) => {
             event.preventDefault();
-            if (!form.image) { toast.error("Please upload or select an image first"); return; }
+            if (!form.images.length) {
+              toast.error("Please upload at least one product image first");
+              return;
+            }
             setSaving(true);
             try {
               const saved = await saveProduct({
                 ...form,
+                image: form.images[0],
+                images: form.images,
                 price: toPaiseValue(form.price),
                 compareAtPrice: toPaiseValue(form.compareAtPrice),
                 stock: Number(form.stock),
@@ -178,11 +231,21 @@ export function AdminProducts() {
               });
               const refreshed = await fetchVendorProducts();
               setProducts(refreshed);
+              const images = normalizeImages(saved.images, saved.image);
               setForm({
-                id: saved._id, title: saved.title, slug: saved.slug, category: saved.category,
-                unit: saved.unit, price: toRupeeInput(saved.price), compareAtPrice: toRupeeInput(saved.compareAtPrice),
-                stock: saved.stock, image: saved.image, shortDescription: saved.shortDescription || "",
-                description: saved.description || "", badges: (saved.badges || []).join(", "),
+                id: saved._id,
+                title: saved.title,
+                slug: saved.slug,
+                category: saved.category,
+                unit: saved.unit,
+                price: toRupeeInput(saved.price),
+                compareAtPrice: toRupeeInput(saved.compareAtPrice),
+                stock: saved.stock,
+                image: images[0] || "",
+                images,
+                shortDescription: saved.shortDescription || "",
+                description: saved.description || "",
+                badges: (saved.badges || []).join(", "),
                 isPublished: saved.isPublished
               });
               toast.success("Product saved");
@@ -193,9 +256,8 @@ export function AdminProducts() {
             }
           }}
         >
-          {/* Section: Basic Info */}
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="📝" title="Basic Info" />
+            <SectionLabel icon="??" title="Basic Info" />
             <Field label="Product Title">
               <input
                 className="field-input"
@@ -221,12 +283,12 @@ export function AdminProducts() {
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Category">
-                <select className="field-input" value={form.category} onChange={(e) => setForm((c) => ({ ...c, category: e.target.value }))}>
-                  <option value="fruits">🍎 Fruits</option>
-                  <option value="vegetables">🥦 Vegetables</option>
-                  <option value="leafy">🥬 Leafy</option>
-                  <option value="herbs">🌿 Herbs</option>
-                </select>
+                <input
+                  className="field-input"
+                  placeholder="e.g. Fruits, Vegetables, Leafy Greens"
+                  value={form.category}
+                  onChange={(e) => setForm((c) => ({ ...c, category: e.target.value }))}
+                />
               </Field>
               <Field label="Unit">
                 <input className="field-input" placeholder="1 kg" value={form.unit} onChange={(e) => setForm((c) => ({ ...c, unit: e.target.value }))} />
@@ -234,9 +296,8 @@ export function AdminProducts() {
             </div>
           </div>
 
-          {/* Section: Pricing & Stock */}
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="💰" title="Pricing & Stock" />
+            <SectionLabel icon="??" title="Pricing & Stock" />
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Price (Rs)">
                 <input className="field-input" type="number" step="0.01" placeholder="49" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} />
@@ -250,11 +311,9 @@ export function AdminProducts() {
             </div>
           </div>
 
-          {/* Section: Image */}
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="🖼️" title="Product Image" />
+            <SectionLabel icon="IMG" title="Product Images" />
 
-            {/* Big Upload Zone */}
             <div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -262,8 +321,8 @@ export function AdminProducts() {
               onDrop={(e) => {
                 e.preventDefault();
                 setDragOver(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file) handleFileUpload(file);
+                const files = e.dataTransfer.files;
+                if (files?.length) handleFileUpload(files);
               }}
               className={`relative flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed py-10 transition-all duration-200 ${
                 dragOver
@@ -279,7 +338,7 @@ export function AdminProducts() {
                       <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                     </svg>
                   </div>
-                  <p className="text-sm font-semibold text-emerald-700">Uploading image...</p>
+                  <p className="text-sm font-semibold text-emerald-700">Uploading images...</p>
                 </>
               ) : (
                 <>
@@ -292,12 +351,12 @@ export function AdminProducts() {
                   </div>
                   <div className="text-center">
                     <p className="text-sm font-semibold text-slate-700">
-                      {dragOver ? "Drop to upload" : "Click to upload or drag & drop"}
+                      {dragOver ? "Drop images to upload" : "Click to upload or drag & drop multiple images"}
                     </p>
-                    <p className="mt-1 text-xs text-slate-400">PNG, JPG, WEBP up to 10MB</p>
+                    <p className="mt-1 text-xs text-slate-400">PNG, JPG, WEBP up to 5MB each</p>
                   </div>
                   <span className="rounded-full border border-emerald-200 bg-white px-4 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm">
-                    Choose File
+                    Choose Files
                   </span>
                 </>
               )}
@@ -305,53 +364,63 @@ export function AdminProducts() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 className="hidden"
                 onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  await handleFileUpload(file);
+                  const files = e.target.files;
+                  await handleFileUpload(files);
                   e.target.value = "";
                 }}
               />
             </div>
 
-            {/* Preset Library */}
-            <Field label="Or choose from preset library">
-              <select
-                className="field-input"
-                value={imageOptions.some((o) => o.image === form.image) ? form.image : ""}
-                onChange={(e) => setForm((c) => ({ ...c, image: e.target.value }))}
-              >
-                <option value="">Select a preset image…</option>
-                {imageOptions.map((option) => (
-                  <option key={option.image} value={option.image}>{option.label}</option>
-                ))}
-              </select>
-            </Field>
-
-            {/* Image Preview */}
-            {form.image && (
-              <div className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-emerald-50 to-orange-50 shadow-sm">
-                  <img src={resolveProductImage(form.image)} alt="Preview" className="h-full w-full object-cover" />
+            {form.images.length > 0 && (
+              <div className="space-y-3 rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">{form.images.length} image{form.images.length > 1 ? "s" : ""} selected</p>
+                    <p className="mt-0.5 text-xs text-slate-400">The first image will be used as the cover image across the store.</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">Image selected</p>
-                  <p className="mt-0.5 text-xs text-slate-400 truncate max-w-[200px]">{form.image}</p>
-                  <button
-                    type="button"
-                    onClick={() => setForm((c) => ({ ...c, image: "" }))}
-                    className="mt-2 text-xs font-medium text-rose-500 hover:text-rose-600"
-                  >
-                    Remove
-                  </button>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {form.images.map((image, index) => (
+                    <div key={image} className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+                      <div className="aspect-square overflow-hidden bg-gradient-to-br from-emerald-50 to-orange-50">
+                        <img src={resolveProductImage(image)} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" />
+                      </div>
+                      <div className="space-y-2 p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                            {index === 0 ? "Cover image" : `Image ${index + 1}`}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => removeImage(image)}
+                            className="text-xs font-medium text-rose-500 hover:text-rose-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <p className="truncate text-xs text-slate-400">{image}</p>
+                        {index > 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => setPrimaryImage(image)}
+                            className="w-full rounded-full border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                          >
+                            Make cover image
+                          </button>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Section: Content */}
           <div className="px-7 py-6 space-y-4">
-            <SectionLabel icon="✏️" title="Content" />
+            <SectionLabel icon="??" title="Content" />
             <Field label="Short Description">
               <input
                 className="field-input"
@@ -364,7 +433,7 @@ export function AdminProducts() {
               <textarea
                 className="field-input resize-none"
                 rows={4}
-                placeholder="Detailed product description…"
+                placeholder="Detailed product description..."
                 value={form.description}
                 onChange={(e) => setForm((c) => ({ ...c, description: e.target.value }))}
               />
@@ -380,7 +449,6 @@ export function AdminProducts() {
             </Field>
           </div>
 
-          {/* Footer actions */}
           <div className="flex items-center justify-between gap-4 rounded-b-3xl bg-slate-50/80 px-7 py-5">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm font-medium text-slate-700 select-none">
               <div className="relative">
@@ -406,7 +474,7 @@ export function AdminProducts() {
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2"/>
                     <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                   </svg>
-                  Saving…
+                  Saving...
                 </>
               ) : (
                 <>
@@ -437,7 +505,6 @@ export function AdminProducts() {
           box-shadow: 0 0 0 3px rgba(5,150,105,0.10);
         }
         .field-input::placeholder { color: #94a3b8; }
-        select.field-input { appearance: none; cursor: pointer; }
       `}</style>
     </div>
   );

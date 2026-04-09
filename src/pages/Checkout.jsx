@@ -1,25 +1,46 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../hooks/useCart";
 import { useAuth } from "../hooks/useAuth";
 import { formatINR } from "../utils/currency";
-import { placeOrder } from "../utils/orders";
+import { createRazorpayOrder, placeOrder, verifyRazorpayPayment } from "../utils/orders";
 import gsap from "gsap";
-import { TbUser, TbPhone, TbMapPin, TbArrowRight, TbCoin } from "react-icons/tb";
+import { TbUser, TbPhone, TbMapPin, TbArrowRight, TbCoin, TbBolt } from "react-icons/tb";
 
 const coupons = {
   NOOKNATIVE50:  { code: "NOOKNATIVE50",  minSubtotal: 60000,  discount: 5000  },
   NOOKNATIVE120: { code: "NOOKNATIVE120", minSubtotal: 120000, discount: 12000 },
 };
 
+let razorpayScriptPromise;
+
+function loadRazorpayCheckout() {
+  if (typeof window === "undefined") return Promise.resolve(false);
+  if (window.Razorpay) return Promise.resolve(true);
+  if (razorpayScriptPromise) return razorpayScriptPromise;
+
+  razorpayScriptPromise = new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+
+  return razorpayScriptPromise;
+}
+
 export function CheckoutPage() {
   const navigate = useNavigate();
   const { user }  = useAuth();
   const { items, subtotal, clearCart } = useCart();
   const rootRef = useRef(null);
+  const [processingPayment, setProcessingPayment] = useState(false);
 
+  const razorpayKeyId = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
   const storedCoupon = typeof window !== "undefined" ? localStorage.getItem("nook_native_coupon") || "" : "";
   const shippingFee  = subtotal >= 50000 ? 0 : 4000;
 
@@ -58,18 +79,90 @@ export function CheckoutPage() {
     return () => ctx.revert();
   }, []);
 
-  const onSubmit = async (values) => {
+  const buildOrderPayload = (values) => ({
+    items: items.map((item) => ({ productId: item.id, qty: item.qty })),
+    couponCode: appliedCoupon?.code || "",
+    shippingAddress: values,
+  });
+
+  const finalizeSuccess = (order, message) => {
+    localStorage.removeItem("nook_native_coupon");
+    clearCart();
+    toast.success(message || `Order ${order.orderNumber} placed successfully`);
+    navigate("/orders");
+  };
+
+  const onSubmitCod = async (values) => {
     try {
-      const order = await placeOrder({
-        items: items.map((item) => ({ productId: item.id, qty: item.qty })),
-        couponCode: appliedCoupon?.code || "",
-        shippingAddress: values,
-      });
-      localStorage.removeItem("nook_native_coupon");
-      clearCart();
-      toast.success(`Order ${order.orderNumber} placed with COD`);
-      navigate("/orders");
+      const order = await placeOrder(buildOrderPayload(values));
+      finalizeSuccess(order, `Order ${order.orderNumber} placed with cash on delivery`);
     } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const onSubmitRazorpay = async (values) => {
+    if (!razorpayKeyId) {
+      toast.error("Add VITE_RAZORPAY_KEY_ID in client/.env to enable online payments.");
+      return;
+    }
+
+    setProcessingPayment(true);
+
+    try {
+      const scriptLoaded = await loadRazorpayCheckout();
+      if (!scriptLoaded || !window.Razorpay) {
+        throw new Error("Unable to load Razorpay checkout right now.");
+      }
+
+      const payload = buildOrderPayload(values);
+      const { razorpayOrder, amount, currency } = await createRazorpayOrder(payload);
+
+      const razorpay = new window.Razorpay({
+        key: razorpayKeyId,
+        amount,
+        currency,
+        name: "Nook and Native",
+        description: "Fresh produce order",
+        image: "/favicon.png",
+        order_id: razorpayOrder.id,
+        prefill: {
+          name: values.fullName,
+          email: user?.email || "",
+          contact: values.phone
+        },
+        notes: {
+          address: [values.addressLine1, values.addressLine2, values.city, values.state, values.postalCode].filter(Boolean).join(", ")
+        },
+        theme: {
+          color: "#059669"
+        },
+        modal: {
+          ondismiss: () => {
+            setProcessingPayment(false);
+            toast("Razorpay payment window closed.");
+          }
+        },
+        handler: async (response) => {
+          try {
+            const order = await verifyRazorpayPayment({
+              ...payload,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature
+            });
+            finalizeSuccess(order, `Order ${order.orderNumber} placed with Razorpay`);
+          } catch (error) {
+            toast.error(error.message);
+          } finally {
+            setProcessingPayment(false);
+          }
+        }
+      });
+
+      razorpay.open();
+    } catch (error) {
+      setProcessingPayment(false);
       toast.error(error.message);
     }
   };
@@ -86,7 +179,6 @@ export function CheckoutPage() {
     <div ref={rootRef} className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-orange-50">
       <div className="mx-auto max-w-6xl px-5 py-10">
 
-        {/* Header */}
         <div className="checkout-fade mb-8">
           <p className="text-xs font-semibold uppercase tracking-widest text-emerald-600">Checkout</p>
           <h1 className="mt-1 text-3xl font-bold text-slate-800" style={{ letterSpacing: "-0.02em" }}>
@@ -95,11 +187,7 @@ export function CheckoutPage() {
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[1.3fr,0.8fr]">
-
-          {/* ── Form ── */}
-          <form onSubmit={handleSubmit(onSubmit)} className="checkout-fade space-y-4">
-
-            {/* Personal info */}
+          <form className="checkout-fade space-y-4">
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100 space-y-4">
               <div className="flex items-center gap-2 mb-1">
                 <TbUser size={15} className="text-emerald-600" />
@@ -123,7 +211,6 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Address */}
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100 space-y-4">
               <div className="flex items-center gap-2 mb-1">
                 <TbMapPin size={15} className="text-emerald-600" />
@@ -171,19 +258,28 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full flex items-center justify-center gap-2 rounded-full bg-emerald-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:bg-emerald-700 hover:gap-3 disabled:opacity-60"
-            >
-              {isSubmitting ? "Placing order..." : (<>Place COD order <TbArrowRight size={15} /></>)}
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={handleSubmit(onSubmitCod)}
+                disabled={isSubmitting || processingPayment}
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-emerald-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-200 transition-all hover:bg-emerald-700 hover:gap-3 disabled:opacity-60"
+              >
+                {isSubmitting ? "Placing COD order..." : (<>Place COD order <TbArrowRight size={15} /></>)}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSubmit(onSubmitRazorpay)}
+                disabled={isSubmitting || processingPayment}
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-slate-900 py-3 text-sm font-semibold text-white shadow-md shadow-slate-200 transition-all hover:bg-slate-800 disabled:opacity-60"
+              >
+                {processingPayment ? "Opening Razorpay..." : (<>Pay with Razorpay <TbBolt size={15} /></>)}
+              </button>
+            </div>
           </form>
 
-          {/* ── Order Summary ── */}
           <div className="checkout-fade space-y-4">
-
-            {/* Items */}
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-4">Order summary</p>
               <div className="space-y-3">
@@ -199,7 +295,6 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* Price breakdown */}
             <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100 space-y-3">
               <div className="flex justify-between text-sm text-slate-600">
                 <span>Subtotal</span>
@@ -214,7 +309,7 @@ export function CheckoutPage() {
               {appliedCoupon && (
                 <div className="flex justify-between text-sm text-emerald-600">
                   <span>Coupon</span>
-                  <span className="font-medium">− {formatINR(appliedCoupon.discount)}</span>
+                  <span className="font-medium">- {formatINR(appliedCoupon.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between border-t border-slate-100 pt-3">
@@ -223,14 +318,12 @@ export function CheckoutPage() {
               </div>
             </div>
 
-            {/* COD notice */}
             <div className="flex gap-3 rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
               <TbCoin size={17} className="text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-amber-800 leading-6">
-                Cash on delivery only. Please keep the exact amount ready at delivery time.
+                Choose cash on delivery or pay online with Razorpay. Add your Razorpay keys in the env files to enable the online button.
               </p>
             </div>
-
           </div>
         </div>
       </div>

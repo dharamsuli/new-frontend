@@ -66,12 +66,6 @@ export function MainLayout() {
             <NavLink to="/category/all" className={({ isActive }) => `${navLinkBase} ${isActive ? navLinkActive : ""}`}>
               All Products
             </NavLink>
-            <NavLink to="/category/fruits" className={({ isActive }) => `${navLinkBase} ${isActive ? navLinkActive : ""}`}>
-              Fruits
-            </NavLink>
-            <NavLink to="/category/vegetables" className={({ isActive }) => `${navLinkBase} ${isActive ? navLinkActive : ""}`}>
-              Vegetables
-            </NavLink>
             <NavLink to="/about" className={({ isActive }) => `${navLinkBase} ${isActive ? navLinkActive : ""}`}>
               About
             </NavLink>

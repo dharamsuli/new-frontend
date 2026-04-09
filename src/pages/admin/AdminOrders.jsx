@@ -39,7 +39,7 @@ export default function AdminOrdersPage() {
 
             <div className="rounded-[24px] bg-slate-50 p-4 text-sm">
               <p className="font-semibold text-slate-900">{formatINR(order.total)}</p>
-              <p className="text-slate-500">Payment: COD</p>
+              <p className="text-slate-500">Payment: {order.paymentMethod}{order.paymentStatus ? ` • ${order.paymentStatus}` : ""}</p>
             </div>
           </div>
 
@@ -84,3 +84,4 @@ export default function AdminOrdersPage() {
     </div>
   );
 }
+

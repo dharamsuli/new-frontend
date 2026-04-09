@@ -74,7 +74,7 @@ export function OrderHistoryPage() {
             </div>
             <div className="rounded-[24px] bg-slate-50 px-4 py-3 text-sm">
               <p>Total: <span className="font-semibold text-slate-900">{formatINR(order.total)}</span></p>
-              <p>Payment: COD</p>
+              <p>Payment: {order.paymentMethod}{order.paymentStatus ? ` • ${order.paymentStatus}` : ""}</p>
             </div>
           </div>
 
@@ -110,3 +110,4 @@ export function OrderHistoryPage() {
 }
 
 export default OrderHistoryPage;
+

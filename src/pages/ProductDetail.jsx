@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import { useParams } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
@@ -12,6 +12,24 @@ export function ProductDetail() {
   const { addItem } = useCart();
   const [qty, setQty] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
+  const galleryImages = useMemo(() => {
+    const normalized = [];
+
+    for (const image of [...(product?.images || []), product?.image]) {
+      const value = String(image || "").trim();
+      if (!value || normalized.includes(value)) {
+        continue;
+      }
+      normalized.push(value);
+    }
+
+    return normalized;
+  }, [product]);
+  const [selectedImage, setSelectedImage] = useState("");
+
+  useEffect(() => {
+    setSelectedImage(galleryImages[0] || "");
+  }, [galleryImages]);
 
   if (isLoading) {
     return (
@@ -34,7 +52,7 @@ export function ProductDetail() {
 
   const maxQty = Math.max(1, Number(product.stock || 0));
   const soldOut = Number(product.stock || 0) <= 0;
-  const imageSrc = resolveProductImage(product.image);
+  const imageSrc = resolveProductImage(selectedImage || galleryImages[0] || product.image);
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
@@ -43,23 +61,38 @@ export function ProductDetail() {
 
   return (
     <div className="pd-page">
-      {/* ── Page header label (matches screenshot) ── */}
       <p className="pd-page-label">PRODUCT OVERVIEW</p>
 
       <div className="pd-grid">
-        {/* ── LEFT: Image ── */}
-        <div className="pd-image-wrap">
-          <img
-            src={imageSrc}
-            alt={product.title}
-            className="pd-image"
-          />
+        <div className="pd-media-column">
+          <div className="pd-image-wrap">
+            <img
+              src={imageSrc}
+              alt={product.title}
+              className="pd-image"
+            />
+          </div>
+          {galleryImages.length > 1 ? (
+            <div className="pd-thumb-row">
+              {galleryImages.map((image, index) => {
+                const isActive = image === (selectedImage || galleryImages[0]);
+                return (
+                  <button
+                    key={image}
+                    type="button"
+                    className={`pd-thumb ${isActive ? "pd-thumb-active" : ""}`}
+                    onClick={() => setSelectedImage(image)}
+                    aria-label={`View image ${index + 1}`}
+                  >
+                    <img src={resolveProductImage(image)} alt={`${product.title} ${index + 1}`} className="pd-thumb-image" />
+                  </button>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
 
-        {/* ── RIGHT: Details ── */}
         <div className="pd-details">
-
-          {/* Wishlist heart */}
           <button
             className="pd-wish-btn"
             onClick={() => setWishlisted((v) => !v)}
@@ -70,26 +103,21 @@ export function ProductDetail() {
             </svg>
           </button>
 
-          {/* Category */}
           <p className="pd-category">{(product.category || "").toUpperCase()}</p>
-
-          {/* Title */}
           <h1 className="pd-title">{product.title}</h1>
 
-          {/* Price row */}
           <div className="pd-price-row">
             {product.compareAtPrice ? (
               <span className="pd-price-compare">{formatINR(product.compareAtPrice)}</span>
             ) : null}
             <span className="pd-price-main">{formatINR(product.price)}</span>
             {soldOut ? (
-              <span className="pd-badge pd-badge-oos">✕ Out of Stock</span>
+              <span className="pd-badge pd-badge-oos">Out of Stock</span>
             ) : (
-              <span className="pd-badge pd-badge-stock">✓ In Stock</span>
+              <span className="pd-badge pd-badge-stock">In Stock</span>
             )}
           </div>
 
-          {/* Description */}
           {product.description && (
             <div className="pd-desc-block">
               <p className="pd-desc-label">DESCRIPTION</p>
@@ -97,13 +125,10 @@ export function ProductDetail() {
             </div>
           )}
 
-          {/* Divider */}
           <hr className="pd-divider" />
 
-          {/* Size / Price / Quantity header */}
           <p className="pd-variants-header">SIZE / PRICE / QUANTITY / TOTAL</p>
 
-          {/* Single variant row (expandable pattern matching screenshot) */}
           <div className="pd-variant-row pd-variant-selected">
             <div className="pd-variant-top">
               <div className="pd-variant-left">
@@ -121,7 +146,6 @@ export function ProductDetail() {
               </div>
             </div>
 
-            {/* Quantity row */}
             <div className="pd-qty-row">
               <span className="pd-qty-label">QUANTITY</span>
               <div className="pd-qty-controls">
@@ -129,7 +153,7 @@ export function ProductDetail() {
                   className="pd-qty-btn"
                   onClick={() => setQty((v) => Math.max(1, v - 1))}
                   disabled={soldOut}
-                >−</button>
+                >-</button>
                 <span className="pd-qty-val">{qty}</span>
                 <button
                   className="pd-qty-btn"
@@ -140,7 +164,6 @@ export function ProductDetail() {
             </div>
           </div>
 
-          {/* Vendor row */}
           <div className="pd-meta-row">
             <span className="pd-meta-key">Vendor</span>
             <span className="pd-meta-val">{product.vendorName || "Nook and Native"}</span>
@@ -153,7 +176,6 @@ export function ProductDetail() {
             </div>
           )}
 
-          {/* CTA */}
           <button
             type="button"
             disabled={soldOut}
@@ -177,7 +199,7 @@ const styles = `
   .pd-page {
     background: linear-gradient(180deg, #f2fbf4 0%, #ecf8ef 100%);
     min-height: 100vh;
-    padding: 40px 32px;
+    padding: 32px 24px;
     font-family: 'Georgia', 'Times New Roman', serif;
   }
 
@@ -186,45 +208,99 @@ const styles = `
     font-family: 'Helvetica Neue', sans-serif;
     letter-spacing: 0.2em;
     color: #2d5a41;
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     font-weight: 400;
   }
 
   .pd-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 56px;
+    grid-template-columns: minmax(320px, 0.88fr) minmax(360px, 1fr);
+    gap: 40px;
     align-items: start;
+    max-width: 1320px;
+    margin: 0 auto;
   }
 
   @media (max-width: 768px) {
-    .pd-grid { grid-template-columns: 1fr; gap: 32px; }
+    .pd-grid { grid-template-columns: 1fr; gap: 28px; }
     .pd-page { padding: 24px 16px; }
   }
 
-  /* ── Image ── */
+  .pd-media-column {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: sticky;
+    top: 96px;
+  }
+
+  @media (max-width: 768px) {
+    .pd-media-column {
+      position: static;
+    }
+  }
+
   .pd-image-wrap {
     background: linear-gradient(180deg, #ffffff 0%, #f6fcf7 100%);
-    border-radius: 4px;
+    border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(45, 106, 79, 0.08);
     line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 420px;
+    max-height: 420px;
+    padding: 20px;
   }
 
   .pd-image {
     width: 100%;
-    height: auto;
+    height: 100%;
     display: block;
     object-fit: contain;
-    max-height: 520px;
+    max-height: 360px;
   }
 
-  /* ── Details ── */
+  .pd-thumb-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(76px, 92px));
+    gap: 10px;
+  }
+
+  .pd-thumb {
+    border: 1px solid #dcecdf;
+    border-radius: 14px;
+    background: #fff;
+    padding: 5px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .pd-thumb:hover {
+    transform: translateY(-2px);
+    border-color: #9ac7aa;
+  }
+
+  .pd-thumb-active {
+    border-color: #2d6a4f;
+    box-shadow: 0 0 0 1px #2d6a4f;
+  }
+
+  .pd-thumb-image {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
+  }
+
   .pd-details {
     position: relative;
     display: flex;
     flex-direction: column;
     gap: 18px;
+    padding-top: 4px;
   }
 
   .pd-wish-btn {
@@ -258,7 +334,6 @@ const styles = `
     font-family: 'Georgia', serif;
   }
 
-  /* Price */
   .pd-price-row {
     display: flex;
     align-items: center;
@@ -299,7 +374,6 @@ const styles = `
     color: #c0392b;
   }
 
-  /* Description */
   .pd-desc-block { display: flex; flex-direction: column; gap: 6px; }
 
   .pd-desc-label {
@@ -323,7 +397,6 @@ const styles = `
     margin: 0;
   }
 
-  /* Variants */
   .pd-variants-header {
     font-size: 10px;
     font-family: 'Helvetica Neue', sans-serif;
@@ -334,7 +407,7 @@ const styles = `
 
   .pd-variant-row {
     border: 1px solid #dcecdf;
-    border-radius: 4px;
+    border-radius: 14px;
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
@@ -422,7 +495,6 @@ const styles = `
     font-family: 'Helvetica Neue', sans-serif;
   }
 
-  /* Quantity */
   .pd-qty-row {
     display: flex;
     align-items: center;
@@ -443,7 +515,7 @@ const styles = `
     align-items: center;
     gap: 0;
     border: 1px solid #d4e8dc;
-    border-radius: 4px;
+    border-radius: 10px;
     overflow: hidden;
     background: #fff;
   }
@@ -476,7 +548,6 @@ const styles = `
     line-height: 34px;
   }
 
-  /* Meta */
   .pd-meta-row {
     display: flex;
     gap: 12px;
@@ -487,7 +558,6 @@ const styles = `
   .pd-meta-key { color: #aaa; }
   .pd-meta-val { color: #444; }
 
-  /* Badges */
   .pd-badges { display: flex; gap: 8px; flex-wrap: wrap; }
   .pd-tag {
     font-size: 11px;
@@ -499,7 +569,6 @@ const styles = `
     background: #f0faf4;
   }
 
-  /* CTA */
   .pd-add-btn {
     margin-top: 8px;
     width: 100%;
@@ -511,19 +580,18 @@ const styles = `
     letter-spacing: 0.12em;
     font-weight: 500;
     border: none;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s;
   }
   .pd-add-btn:hover:not(:disabled) { background: #24553f; }
   .pd-add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* Skeletons */
   .pd-skeleton-img {
     width: 100%;
     height: 420px;
     background: #e8e4dc;
-    border-radius: 4px;
+    border-radius: 20px;
     animation: pd-pulse 1.4s ease-in-out infinite;
   }
   .pd-skeleton-text {
@@ -547,4 +615,3 @@ const styles = `
 `;
 
 export default ProductDetail;
-

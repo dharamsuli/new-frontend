@@ -56,12 +56,10 @@ export function AccountPage() {
     focus:ring-2 focus:ring-emerald-100
     ${errors[field] ? "border-rose-300 focus:border-rose-400" : "border-slate-200 focus:border-emerald-400"}`;
 
-  // ── Logged in ──
   if (user) {
     return (
       <div ref={rootRef} className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-orange-50 flex items-center justify-center px-5 py-16">
         <div className="acc-fade w-full max-w-md rounded-2xl bg-white p-8 shadow-sm ring-1 ring-emerald-100 space-y-6">
-          {/* Avatar */}
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center">
               <TbUser size={24} className="text-emerald-600" />
@@ -117,12 +115,10 @@ export function AccountPage() {
     );
   }
 
-  // ── Auth ──
   return (
     <div ref={rootRef} className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-orange-50">
       <div className="mx-auto grid max-w-5xl gap-6 px-5 py-12 md:grid-cols-[0.95fr,1.05fr] md:items-start">
 
-        {/* Left panel */}
         <div className="acc-fade rounded-2xl overflow-hidden shadow-md">
           <img
             src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800&h=400&fit=crop"
@@ -145,10 +141,7 @@ export function AccountPage() {
           </div>
         </div>
 
-        {/* Right panel - form */}
         <div className="acc-fade rounded-2xl bg-white p-6 shadow-sm ring-1 ring-emerald-100 space-y-5">
-
-          {/* Mode toggle */}
           <div className="flex gap-1 rounded-full bg-slate-100 p-1 text-sm">
             {["login", "signup"].map((m) => (
               <button
@@ -180,7 +173,6 @@ export function AccountPage() {
               } catch (err) { toast.error(err.message); }
             }}
           >
-            {/* Role toggle (signup only) */}
             {isSignup && (
               <div className="flex gap-1 rounded-full bg-slate-100 p-1 text-sm">
                 {["customer", "vendor"].map((r) => (
